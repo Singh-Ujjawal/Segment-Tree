@@ -1,0 +1,29 @@
+class SegmentTree {
+   public:
+   vector<int> seg;
+   int n;
+   SegmentTree(int n) {
+      this->n = n;
+      seg.resize(n*4);
+   }
+   
+   void buildTree(int ind,int start,int end,vector<int> &arr) {
+      if(start==end) {
+         seg[ind] = arr[start];
+         return ;
+      }
+      int mid = start + (end-start)/2;
+      buildTree(2*ind+1,start,mid,arr);
+      buildTree(2*ind+2,mid+1,end,arr);
+      seg[ind] = seg[2*ind+1]+seg[2*ind+2];
+   }
+
+   int get(int ind,int start,int end,int leftRange,int rightRange) {
+      if(start>rightRange or end<leftRange) return 0;
+      if(leftRange<=start and end<=rightRange) return seg[ind];
+      int mid = start + (end-start)/2;
+      int left = get(2*ind+1,start,mid,leftRange,rightRange);
+      int right = get(2*ind+2,mid+1,end,leftRange,rightRange);
+      return left + right;
+   }
+};
