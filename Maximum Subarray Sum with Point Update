@@ -1,0 +1,64 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+struct Node {
+    long long sum, pref, suff, ans;
+};
+
+struct SegmentTree {
+    int n;
+    vector<Node> seg;
+
+    SegmentTree(vector<long long>& arr) {
+        n = arr.size();
+        seg.resize(4*n);
+        build(0, 0, n-1, arr);
+    }
+
+    Node make_node(long long val) {
+        Node node;
+        node.sum = val;
+        node.pref = node.suff = node.ans = max(0LL, val); // allow empty subarray
+        return node;
+    }
+
+    Node merge(Node l, Node r) {
+        Node res;
+        res.sum = l.sum + r.sum;
+        res.pref = max(l.pref, l.sum + r.pref);
+        res.suff = max(r.suff, r.sum + l.suff);
+        res.ans = max({l.ans, r.ans, l.suff + r.pref});
+        return res;
+    }
+
+    void build(int idx, int l, int r, vector<long long>& arr) {
+        if (l == r) {
+            seg[idx] = make_node(arr[l]);
+            return;
+        }
+        int mid = (l + r) / 2;
+        build(2*idx+1, l, mid, arr);
+        build(2*idx+2, mid+1, r, arr);
+        seg[idx] = merge(seg[2*idx+1], seg[2*idx+2]);
+    }
+
+    void update(int idx, int l, int r, int pos, long long val) {
+        if (l == r) {
+            seg[idx] = make_node(val);
+            return;
+        }
+        int mid = (l + r) / 2;
+        if (pos <= mid) update(2*idx+1, l, mid, pos, val);
+        else update(2*idx+2, mid+1, r, pos, val);
+        seg[idx] = merge(seg[2*idx+1], seg[2*idx+2]);
+    }
+
+    void update(int pos, long long val) {
+        update(0, 0, n-1, pos, val);
+    }
+
+    long long query() {
+        return seg[0].ans;
+    }
+};
+
