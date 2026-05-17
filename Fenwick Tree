@@ -1,0 +1,46 @@
+class FWTree {
+public:
+    vector<int> tree;
+    int n;
+
+    FWTree(int n) {
+        this->n = n;
+        tree.resize(n+1, 0);
+    }
+
+    void update(int i, int val) {
+        while(i<=n) {
+            tree[i] += val;
+            i += (i & (-i));
+        }
+    }
+
+    int sum(int i) {
+        int s = 0;
+        while(i>0) {
+            s += tree[i];
+            i -= (i & (-i));
+        }
+        return s;
+    }
+
+    int rangeSum(int l, int r) {
+        return sum(r) - sum(l-1);
+    }
+
+    // smallest index i such that prefix sum ≥ k
+    int findKth(int k) {
+        int idx = 0;
+        int bitMask = 1;
+        // find highest power of 2 ≤ n
+        while(bitMask <= n) bitMask <<= 1;
+        bitMask >>= 1;
+        for(int step = bitMask; step > 0; step >>= 1) {
+            if(idx + step <= n && tree[idx + step] < k) {
+                k -= tree[idx + step];
+                idx += step;
+            }
+        }
+        return idx + 1;
+    }
+};
