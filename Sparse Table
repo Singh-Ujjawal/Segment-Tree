@@ -1,0 +1,84 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+#define ll long long
+
+class SparseTable {
+public:
+
+    int n, LOG;
+
+    vector<vector<ll>> mx;
+    vector<vector<ll>> mn;
+
+    vector<int> lg;
+
+    SparseTable(vector<ll>& arr) {
+
+        n = arr.size();
+
+        LOG = 32 - __builtin_clz(n);
+
+        mx.assign(LOG, vector<ll>(n));
+        mn.assign(LOG, vector<ll>(n));
+
+        lg.resize(n + 1);
+
+        build(arr);
+    }
+
+    void build(vector<ll>& arr) {
+
+        // Level 0
+        for (int i = 0; i < n; i++) {
+            mx[0][i] = arr[i];
+            mn[0][i] = arr[i];
+        }
+
+        // Build sparse table
+        for (int k = 1; k < LOG; k++) {
+
+            for (int i = 0; i + (1 << k) <= n; i++) {
+
+                mx[k][i] = max(
+                    mx[k - 1][i],
+                    mx[k - 1][i + (1 << (k - 1))]
+                );
+
+                mn[k][i] = min(
+                    mn[k - 1][i],
+                    mn[k - 1][i + (1 << (k - 1))]
+                );
+            }
+        }
+
+        // Precompute logs
+        lg[1] = 0;
+
+        for (int i = 2; i <= n; i++) {
+            lg[i] = lg[i / 2] + 1;
+        }
+    }
+
+    // Maximum Query
+    ll getMax(int l, int r) {
+
+        int k = lg[r - l + 1];
+
+        return max(
+            mx[k][l],
+            mx[k][r - (1 << k) + 1]
+        );
+    }
+
+    // Minimum Query
+    ll getMin(int l, int r) {
+
+        int k = lg[r - l + 1];
+
+        return min(
+            mn[k][l],
+            mn[k][r - (1 << k) + 1]
+        );
+    }
+};
