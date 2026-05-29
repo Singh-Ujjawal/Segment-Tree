@@ -1,0 +1,121 @@
+#include <bits/stdc++.h>
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
+
+using namespace std;
+using namespace __gnu_pbds;
+
+#define ll long long
+
+/*
+-----------------------------------------
+ORDERED SET
+-----------------------------------------
+
+Functions:
+
+1. insert(x)
+2. erase(x)
+
+3. order_of_key(x)
+   -> number of elements strictly smaller than x
+
+4. find_by_order(k)
+   -> iterator to k-th element (0-based)
+
+Complexities:
+Insert  : O(logN)
+Erase   : O(logN)
+Query   : O(logN)
+
+-----------------------------------------
+*/
+
+// Ordered Set
+typedef tree<
+    ll,
+    null_type,
+    less<ll>,
+    rb_tree_tag,
+    tree_order_statistics_node_update
+> ordered_set;
+
+
+/*
+-----------------------------------------
+ORDERED MULTISET
+-----------------------------------------
+
+PBDS does NOT support duplicates directly.
+
+Use pair<value,index>
+
+-----------------------------------------
+*/
+
+typedef tree<
+    pair<ll,ll>,
+    null_type,
+    less<pair<ll,ll>>,
+    rb_tree_tag,
+    tree_order_statistics_node_update
+> ordered_multiset;
+
+int main() {
+
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    /*
+    =========================================
+                ORDERED SET
+    =========================================
+    */
+
+    ordered_set st;
+
+    st.insert(10);
+    st.insert(20);
+    st.insert(30);
+
+    // Count elements < 20
+    cout << st.order_of_key(20) << endl;
+
+    // 0th smallest element
+    cout << *st.find_by_order(0) << endl;
+
+    // 1st smallest element
+    cout << *st.find_by_order(1) << endl;
+
+
+    /*
+    =========================================
+            ORDERED MULTISET
+    =========================================
+    */
+
+    ordered_multiset ms;
+
+    ms.insert({5,0});
+    ms.insert({5,1});
+    ms.insert({10,2});
+
+    // Count elements < 10
+    cout << ms.order_of_key({10,-1}) << endl;
+
+    // Count elements in range [5,10]
+    ll l = 5;
+    ll r = 10;
+
+    ll cnt =
+        ms.order_of_key({r+1,-1})
+        -
+        ms.order_of_key({l,-1});
+
+    cout << cnt << endl;
+
+    // erase one occurrence
+    ms.erase({5,0});
+
+    return 0;
+}
