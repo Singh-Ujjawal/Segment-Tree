@@ -1,0 +1,148 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <map>
+#include <unordered_map>
+#include <algorithm>
+#include <map>
+#include <set>
+using namespace std;
+#define ll long long
+
+struct Node {
+    ll sum,pref,suff,maxi;
+};
+
+class SegmentTree {
+    public:
+    ll n;
+    vector<ll> seg;
+    vector<ll> lazyAdd;
+    vector<ll> lazySet;
+    vector<bool> hasSet;
+
+    SegmentTree(ll n) {
+        this->n = n;
+        seg.resize(4*n);
+        lazyAdd.assign(4*n,0);
+        lazySet.assign(4*n,0);
+        hasSet.assign(4*n,false);
+    }
+
+    void build(ll idx,ll l,ll r,vector<ll>& a) {
+        if(l==r){
+            seg[idx]=a[l];
+            return;
+        }
+        ll mid=(l+r)/2;
+        build(2*idx+1,l,mid,a);
+        build(2*idx+2,mid+1,r,a);
+        seg[idx]=seg[2*idx+1]+seg[2*idx+2];
+    }
+
+    void push(ll idx,ll l,ll r) {
+        if(l==r) {
+            hasSet[idx]=false;
+            lazyAdd[idx]=0;
+            return;
+        }
+        ll left=2*idx+1;
+        ll right=2*idx+2;
+        ll mid=(l+r)/2;
+        if(hasSet[idx]) {
+            ll val=lazySet[idx];
+            seg[left]=(mid-l+1)*val;
+            seg[right]=(r-mid)*val;
+            hasSet[left]=hasSet[right]=true;
+            lazySet[left]=val;
+            lazySet[right]=val;
+            lazyAdd[left]=0;
+            lazyAdd[right]=0;
+            hasSet[idx]=false;
+        }
+
+        if(lazyAdd[idx]) {
+            ll val=lazyAdd[idx];
+            seg[left]+=(mid-l+1)*val;
+            seg[right]+=(r-mid)*val;
+            if(hasSet[left]) lazySet[left]+=val;
+            else lazyAdd[left]+=val;
+            if(hasSet[right]) lazySet[right]+=val;
+            else lazyAdd[right]+=val;
+            lazyAdd[idx]=0;
+        }
+    }
+
+    void rangeSet(ll idx,ll l,ll r,ll ql,ll qr,ll val) {
+        if(r<ql or l>qr) return;
+        if(ql<=l and r<=qr) {
+            seg[idx]=(r-l+1)*val;
+            hasSet[idx]=true;
+            lazySet[idx]=val;
+            lazyAdd[idx]=0;
+            return;
+        }
+        push(idx,l,r);
+        ll mid=(l+r)/2;
+        rangeSet(2*idx+1,l,mid,ql,qr,val);
+        rangeSet(2*idx+2,mid+1,r,ql,qr,val);
+        seg[idx]=seg[2*idx+1]+seg[2*idx+2];
+    }
+
+    void rangeAdd(ll idx,ll l,ll r,ll ql,ll qr,ll val) {
+        if(r<ql or l>qr) return;
+        if(ql<=l and r<=qr) {
+            seg[idx]+=(r-l+1)*val;
+            if(hasSet[idx]) lazySet[idx]+=val;
+            else lazyAdd[idx]+=val;
+            return;
+        }
+        push(idx,l,r);
+        ll mid=(l+r)/2;
+        rangeAdd(2*idx+1,l,mid,ql,qr,val);
+        rangeAdd(2*idx+2,mid+1,r,ql,qr,val);
+        seg[idx]=seg[2*idx+1]+seg[2*idx+2];
+    }
+
+    ll query(ll idx,ll l,ll r,ll ql,ll qr) {
+        if(r<ql or l>qr) return 0;
+        if(ql<=l and r<=qr) return seg[idx];
+        push(idx,l,r);
+        ll mid=(l+r)/2;
+        return query(2*idx+1,l,mid,ql,qr) + query(2*idx+2,mid+1,r,ql,qr);
+    }
+};
+
+int main() {
+    // ll t;cin>>t;
+    // while(t--) {
+        ll n,q;cin>>n>>q;
+        vector<ll> a(n);
+        for(ll i=0;i<n;i++) cin>>a[i];
+        SegmentTree sgt(n);
+        sgt.build(0,0,n-1,a);
+        while(q--) {
+            ll x;cin>>x;
+            if(x==1) {
+                ll l,r,v;cin>>l>>r>>v;
+                l--,r--;
+                // RangeUpdate
+                sgt.rangeAdd(0,0,n-1,l,r,v);
+            }
+            else if(x==2) {
+                ll l,r,v;cin>>l>>r>>v;
+                l--,r--;
+                // RangeSet
+                sgt.rangeSet(0,0,n-1,l,r,v);
+            }
+            else {
+                ll l,r;cin>>l>>r;
+                l--,r--;
+                // RangeQueryForSum
+                cout<<sgt.query(0,0,n-1,l,r)<<endl;
+            }
+        }
+    // }
+
+    return 0;
+}
